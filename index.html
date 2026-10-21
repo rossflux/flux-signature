@@ -20,11 +20,11 @@
 <div class="wrap">
   <h1>Flux Broadcast – Gmail signature</h1>
   <div class="card">
-    <label>Full name</label><input id="name" value="Ross Mason">
-    <label>Pronouns (optional)</label><input id="pronouns" placeholder="Leave blank to omit">
-    <label>Job title</label><input id="title" value="Founder, MD &amp; Head of Production">
-    <label>Email</label><input id="email" value="ross@fluxbroadcast.com">
-    <label>Phone</label><input id="phone" value="07590917800">
+    <label>Full name</label><input id="name" placeholder="e.g. Jane Smith">
+    <label>Pronouns (optional)</label><input id="pronouns" placeholder="Optional, e.g. She/Her. Leave blank to omit">
+    <label>Job title</label><input id="title" placeholder="e.g. Production Account Manager, Technical Producer">
+    <label>Email</label><input id="email" placeholder="firstname.lastname@fluxbroadcast.com">
+    <label>Phone</label><input id="phone" placeholder="e.g. 07123456789">
     <button id="copy">Copy signature</button><span id="msg"></span>
   </div>
   <div class="card"><div id="preview"></div></div>
@@ -61,7 +61,9 @@ function build(v) {
 }
 
 const ids = ["name","pronouns","title","email","phone"];
-const vals = () => Object.fromEntries(ids.map(i => [i, document.getElementById(i).value]));
+const fallback = {name:"Your Name", pronouns:"", title:"Your Job Title", email:"your.name@fluxbroadcast.com", phone:"Your phone number"};
+const raw = () => Object.fromEntries(ids.map(i => [i, document.getElementById(i).value.trim()]));
+const vals = () => Object.fromEntries(Object.entries(raw()).map(([k,v]) => [k, v || fallback[k]]));
 const prev = document.getElementById("preview");
 const render = () => { prev.innerHTML = build(vals()); };
 ids.forEach(i => document.getElementById(i).addEventListener("input", render));
@@ -69,6 +71,9 @@ render();
 
 document.getElementById("copy").addEventListener("click", async () => {
   const msg = document.getElementById("msg");
+  const r0 = raw();
+  if (!r0.name || !r0.title || !r0.email || !r0.phone) { msg.style.color = "#c53030"; msg.textContent = "Please fill in name, job title, email and phone first."; return; }
+  msg.style.color = "#009999";
   const html = build(vals());
   try {
     await navigator.clipboard.write([new ClipboardItem({
